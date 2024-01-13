@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,10 +11,11 @@ import { SwipeListView } from "react-native-swipe-list-view";
 import { useRoute } from "@react-navigation/native";
 import { FlatList } from "react-native-gesture-handler";
 
-const CourtScreen = () => {
+const CourtScreen = ({ navigation }) => {
   const [isReady, setIsReady] = useState({});
   const [swipedRowKey, setSwipedRowKey] = useState(null);
 
+  const [completedCases, setCompletedCases] = useState([]);
   const route = useRoute();
   const { submittedData } = route.params;
 
@@ -23,12 +24,10 @@ const CourtScreen = () => {
   const clerkArr = submittedData.clerk;
   const usherArr = submittedData.usher;
   const casesArr = submittedData.cases;
-  const [newData, setNewData] = useState(casesArr);
 
-  const closeRow = (rowMap, rowKey) => {
-    if (rowMap[rowKey]) {
-      rowMap[rowKey].closeRow();
-    }
+  const closeRow = (id) => {
+    const updatedCompletedCases = [...completedCases, id];
+    setCompletedCases(updatedCompletedCases);
   };
 
   const onSwipeValueChange = (swipeData) => {
@@ -36,12 +35,10 @@ const CourtScreen = () => {
     setSwipedRowKey(key);
   };
 
-  const caseComplete = (rowMap, rowKey) => {};
-
-  const onCaseReadyPress = (caseNumber) => {
+  const onCaseReadyPress = (id) => {
     setIsReady((prevMap) => ({
       ...prevMap,
-      [caseNumber]: !prevMap[caseNumber],
+      [id]: !prevMap[id],
     }));
     setSwipedRowKey(null);
   };
@@ -49,25 +46,25 @@ const CourtScreen = () => {
     <View style={styles.rowBack}>
       <TouchableOpacity
         style={{
-          backgroundColor: isReady[data.item.case_number]
-            ? "lightgrey"
-            : "#81b29a",
+          backgroundColor: isReady[data.item.id] ? "lightgrey" : "#81b29a",
+
           ...styles.backLeftBtn,
         }}
-        onPress={() => onCaseReadyPress(data.item.case_number)}
+        onPress={() => onCaseReadyPress(data.item.id)}
       >
         <Text>
-          {isReady[data.item.case_number] ? (
+          {isReady[data.item.id] ? (
             <Text>Case Not Ready</Text>
           ) : (
             <Text>Case {"\n"}Ready</Text>
           )}
         </Text>
       </TouchableOpacity>
-
       <TouchableOpacity
-        style={[styles.backRightBtn, styles.backRightBtnRight]}
-        onPress={() => caseComplete(rowMap, data.item.case_number)}
+    
+    disabled={!isReady[data.item.id]} 
+        style={[styles.backRightBtn, styles.backRightBtnRight,{ opacity: isReady[data.item.id] ? 1 : 0.5 }] }
+        onPress={() => closeRow(data.item.id)}
       >
         <Text style={styles.backTextBlack}>Completed</Text>
       </TouchableOpacity>
@@ -79,23 +76,22 @@ const CourtScreen = () => {
       style={[
         styles.rowFront,
         {
-          backgroundColor: isReady[data.item.case_number]
-            ? "#86CBA9"
-            : "lightgrey",
+          backgroundColor: isReady[data.item.id] ? "#86CBA9" : "lightgrey",
+          display: completedCases.includes(data.item.id) ? "none" : "flex",
         },
       ]}
       underlayColor={"#AAA"}
-      key={data.item.index}
+      keyExtractor={data.item.id}
     >
       <View>
         <Text style={styles.caseReadyTime}>
-          {isReady[data.item.case_number]
+          {isReady[data.item.id]
             ? `Case ${
-                data.item.case_number
+                data.item.id
               } ready at ${new Date().getHours()}:${new Date().getMinutes()}`
-            : `Case ${data.item.case_number} not ready`}
+            : `Case ${data.item.id} not ready`}
         </Text>
-        <Text>Case Number: {data.item.case_number}</Text>
+        <Text>Case Number: {data.item.id}</Text>
         <Text>Defendant: {data.item.defendant}</Text>
         <Text>Case type: {data.item.case_type}</Text>
         <Text>Defence lawyer: {data.item.defence_lawyer}</Text>
@@ -173,6 +169,7 @@ const CourtScreen = () => {
 
       <SwipeListView
         useFlatList
+        keyExtractor={(item) => item.id}
         data={casesArr}
         renderItem={renderItem}
         renderHiddenItem={renderHiddenItem}
