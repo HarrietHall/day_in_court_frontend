@@ -25,6 +25,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "00fb9991-6c76-48de-b5bb-fa2683cecbd2"
+      }
+    },
+    "owner": "harrietnc",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/00fb9991-6c76-48de-b5bb-fa2683cecbd2"
     }
   }
 }
