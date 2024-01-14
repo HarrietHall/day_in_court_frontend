@@ -1,11 +1,10 @@
-import React, { useState,   useContext } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   TouchableHighlight,
-
 } from "react-native";
 import { SwipeListView } from "react-native-swipe-list-view";
 import { CaseContext } from "../context_provider/case_context";
@@ -16,6 +15,8 @@ const CourtScreen = ({ navigation }) => {
   const [isReady, setIsReady] = useState({});
   const [swipedRowKey, setSwipedRowKey] = useState(null);
   const { completedCases, setCompletedCases } = useContext(CaseContext);
+  const { caseCompletedTime, setCaseCompletedTime } = useContext(CaseContext);
+  const { caseReadyTime, setCaseReadyTime } = useContext(CaseContext);
   const route = useRoute();
   const { submittedData } = route.params;
   const courtTypeArr = submittedData.courtType;
@@ -24,24 +25,30 @@ const CourtScreen = ({ navigation }) => {
   const usherArr = submittedData.usher;
   const casesArr = submittedData.cases;
 
-  const closeRow = (item) => {
-      setCompletedCases((completedCases) => [...completedCases, item]);
-    };
-  
-
   const onSwipeValueChange = (swipeData) => {
- 
     const { key } = swipeData;
     setSwipedRowKey(key);
   };
-
   const onCaseReadyPress = (id) => {
     setIsReady((prevMap) => ({
       ...prevMap,
       [id]: !prevMap[id],
     }));
+    setCaseReadyTime((prevTime) => ({
+      ...prevTime,
+      [id]: new Date(),
+    }));
     setSwipedRowKey(null);
   };
+
+  const closeRow = (item) => {
+    setCompletedCases((completedCases) => [...completedCases, item]);
+    setCaseCompletedTime((prevTime) => {
+      const newTime = { ...prevTime, [item.id]: new Date() };
+      return newTime;
+    });
+  };
+
   const renderHiddenItem = (data, rowMap) => (
     <View style={styles.rowBack}>
       <TouchableOpacity
@@ -73,11 +80,6 @@ const CourtScreen = ({ navigation }) => {
       </TouchableOpacity>
     </View>
   );
-const time = () => {
-  new Date().getHours()
-  new Date().getMinutes()
-
-}
 
   const renderItem = (data, rowMap) => (
     <TouchableHighlight
@@ -85,7 +87,11 @@ const time = () => {
         styles.rowFront,
         {
           backgroundColor: isReady[data.item.id] ? "#8AB186" : "lightgrey",
-          display: completedCases.some((completedCase) => completedCase.id === data.item.id) ? "none" : "flex",
+          display: completedCases.some(
+            (completedCase) => completedCase.id === data.item.id
+          )
+            ? "none"
+            : "flex",
         },
       ]}
       underlayColor={"#AAA"}
@@ -103,9 +109,15 @@ const time = () => {
         <Text>Case type: {data.item.case_type}</Text>
         <Text>Defence lawyer: {data.item.defence_lawyer}</Text>
         <Text>Prosecution lawyer: {data.item.prosecution_lawyer}</Text>
-        <Text>Witnesses:{data.item.witnesses.map((witness, index) => 
-        <Text key={index}>{'\n'}{witness}</Text>
-        )}</Text>
+        <Text>
+          Witnesses:
+          {data.item.witnesses.map((witness, index) => (
+            <Text key={index}>
+              {"\n"}
+              {witness}
+            </Text>
+          ))}
+        </Text>
       </View>
     </TouchableHighlight>
   );
@@ -151,11 +163,7 @@ const time = () => {
         onRowDidOpen={(rowKey) => console.log("This row opened", rowKey)}
         onSwipeValueChange={onSwipeValueChange}
         ListHeaderComponent={() => (
-          <Text
-            style={styles.mainContainerText}
-          >
-            Cases:
-          </Text>
+          <Text style={styles.mainContainerText}>Cases:</Text>
         )}
       />
     </View>
@@ -169,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#B6B1A4",
     flex: 1,
     padding: 10,
-  marginBottom:60
+    marginBottom: 60,
   },
   mainContainerText: {
     fontSize: 20,
@@ -183,12 +191,12 @@ const styles = StyleSheet.create({
   },
   rowFront: {
     alignItems: "center",
-       justifyContent: "center",
+    justifyContent: "center",
 
     borderColor: "#78746B",
-    borderRadius:4,
+    borderRadius: 4,
     borderWidth: 3,
-    marginBottom:5
+    marginBottom: 5,
   },
   rowBack: {
     alignItems: "center",
@@ -198,8 +206,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingLeft: 15,
- 
-    marginBottom:5
+
+    marginBottom: 5,
   },
 
   backRightBtn: {
@@ -209,7 +217,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     width: 75,
-
   },
   backLeftBtn: {
     alignItems: "center",
