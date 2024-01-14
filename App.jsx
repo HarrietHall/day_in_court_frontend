@@ -10,11 +10,12 @@ import CourtScreen from "./screens/court_completed_screen";
 import CaseCompletedScreen from "./screens/case_completed_screen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView, SafeAreaProvider } from "react-native-safe-area-context";
-
+import { CaseContextProvider } from "./context_provider/case_context";
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
+    <CaseContextProvider>
     <SafeAreaProvider>
       <GestureHandlerRootView style={styles.container}>
         <SafeAreaView style={styles.container}>
@@ -44,6 +45,7 @@ export default function App() {
         </SafeAreaView>
       </GestureHandlerRootView>
     </SafeAreaProvider>
+    </CaseContextProvider>
   );
 }
 
