@@ -1,36 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useState,   useContext } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   TouchableHighlight,
+
 } from "react-native";
 import { SwipeListView } from "react-native-swipe-list-view";
-
+import { CaseContext } from "../context_provider/case_context";
 import { useRoute } from "@react-navigation/native";
 import { FlatList } from "react-native-gesture-handler";
 
 const CourtScreen = ({ navigation }) => {
   const [isReady, setIsReady] = useState({});
   const [swipedRowKey, setSwipedRowKey] = useState(null);
-
-  const [completedCases, setCompletedCases] = useState([]);
+  const { completedCases, setCompletedCases } = useContext(CaseContext);
   const route = useRoute();
   const { submittedData } = route.params;
-
   const courtTypeArr = submittedData.courtType;
   const magistrateArr = submittedData.magistrate;
   const clerkArr = submittedData.clerk;
   const usherArr = submittedData.usher;
   const casesArr = submittedData.cases;
 
-  const closeRow = (id) => {
-    const updatedCompletedCases = [...completedCases, id];
-    setCompletedCases(updatedCompletedCases);
-  };
+  const closeRow = (item) => {
+      setCompletedCases((completedCases) => [...completedCases, item]);
+    };
+  
 
   const onSwipeValueChange = (swipeData) => {
+ 
     const { key } = swipeData;
     setSwipedRowKey(key);
   };
@@ -61,23 +61,31 @@ const CourtScreen = ({ navigation }) => {
         </Text>
       </TouchableOpacity>
       <TouchableOpacity
-    
-    disabled={!isReady[data.item.id]} 
-        style={[styles.backRightBtn, styles.backRightBtnRight,{ opacity: isReady[data.item.id] ? 1 : 0.5 }] }
-        onPress={() => closeRow(data.item.id)}
+        disabled={!isReady[data.item.id]}
+        style={[
+          styles.backRightBtn,
+          styles.backRightBtnRight,
+          { opacity: isReady[data.item.id] ? 1 : 0.5 },
+        ]}
+        onPress={() => closeRow(data.item)}
       >
         <Text style={styles.backTextBlack}>Completed</Text>
       </TouchableOpacity>
     </View>
   );
+const time = () => {
+  new Date().getHours()
+  new Date().getMinutes()
+
+}
 
   const renderItem = (data, rowMap) => (
     <TouchableHighlight
       style={[
         styles.rowFront,
         {
-          backgroundColor: isReady[data.item.id] ? "#86CBA9" : "lightgrey",
-          display: completedCases.includes(data.item.id) ? "none" : "flex",
+          backgroundColor: isReady[data.item.id] ? "#8AB186" : "lightgrey",
+          display: completedCases.some((completedCase) => completedCase.id === data.item.id) ? "none" : "flex",
         },
       ]}
       underlayColor={"#AAA"}
@@ -91,11 +99,13 @@ const CourtScreen = ({ navigation }) => {
               } ready at ${new Date().getHours()}:${new Date().getMinutes()}`
             : `Case ${data.item.id} not ready`}
         </Text>
-        <Text>Case Number: {data.item.id}</Text>
         <Text>Defendant: {data.item.defendant}</Text>
         <Text>Case type: {data.item.case_type}</Text>
         <Text>Defence lawyer: {data.item.defence_lawyer}</Text>
         <Text>Prosecution lawyer: {data.item.prosecution_lawyer}</Text>
+        <Text>Witnesses:{data.item.witnesses.map((witness, index) => 
+        <Text key={index}>{'\n'}{witness}</Text>
+        )}</Text>
       </View>
     </TouchableHighlight>
   );
@@ -103,17 +113,7 @@ const CourtScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View>
-        <Text
-          style={{
-            fontSize: 30,
-            textAlign: "center",
-            marginTop: 20,
-            fontWeight: "bold",
-            textDecorationLine: "underline",
-          }}
-        >
-          Court type:
-        </Text>
+        <Text style={styles.mainContainerText}>Court type: </Text>
         <Text>{courtTypeArr}</Text>
 
         <FlatList
@@ -121,30 +121,10 @@ const CourtScreen = ({ navigation }) => {
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => <Text>{item}</Text>}
           ListHeaderComponent={() => (
-            <Text
-              style={{
-                fontSize: 30,
-                textAlign: "center",
-                marginTop: 20,
-                fontWeight: "bold",
-                textDecorationLine: "underline",
-              }}
-            >
-              Magistrates:
-            </Text>
+            <Text style={styles.mainContainerText}>Magistrates:</Text>
           )}
         />
-        <Text
-          style={{
-            fontSize: 30,
-            textAlign: "center",
-            marginTop: 20,
-            fontWeight: "bold",
-            textDecorationLine: "underline",
-          }}
-        >
-          Clerk:
-        </Text>
+        <Text style={styles.mainContainerText}>Clerk: </Text>
         <Text>{clerkArr}</Text>
 
         <FlatList
@@ -152,17 +132,7 @@ const CourtScreen = ({ navigation }) => {
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => <Text>{item}</Text>}
           ListHeaderComponent={() => (
-            <Text
-              style={{
-                fontSize: 30,
-                textAlign: "center",
-                marginTop: 20,
-                fontWeight: "bold",
-                textDecorationLine: "underline",
-              }}
-            >
-              Usher:
-            </Text>
+            <Text style={styles.mainContainerText}>Usher:</Text>
           )}
         />
       </View>
@@ -182,13 +152,7 @@ const CourtScreen = ({ navigation }) => {
         onSwipeValueChange={onSwipeValueChange}
         ListHeaderComponent={() => (
           <Text
-            style={{
-              fontSize: 30,
-              textAlign: "center",
-              marginTop: 20,
-              fontWeight: "bold",
-              textDecorationLine: "underline",
-            }}
+            style={styles.mainContainerText}
           >
             Cases:
           </Text>
@@ -202,18 +166,29 @@ export default CourtScreen;
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "white",
+    backgroundColor: "#B6B1A4",
     flex: 1,
+    padding: 10,
+  marginBottom:60
+  },
+  mainContainerText: {
+    fontSize: 20,
+    textAlign: "left",
+    marginTop: 20,
+    fontWeight: "bold",
+    color: "#333a40",
   },
   backTextBlack: {
     color: "black",
   },
   rowFront: {
     alignItems: "center",
-    borderBottomColor: "black",
-    borderBottomWidth: 1,
-    justifyContent: "center",
-    height: 140,
+       justifyContent: "center",
+
+    borderColor: "#78746B",
+    borderRadius:4,
+    borderWidth: 3,
+    marginBottom:5
   },
   rowBack: {
     alignItems: "center",
@@ -223,8 +198,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     paddingLeft: 15,
-    borderBlockColor: "black",
-    borderBottomWidth: 1,
+ 
+    marginBottom:5
   },
 
   backRightBtn: {
@@ -234,6 +209,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     width: 75,
+
   },
   backLeftBtn: {
     alignItems: "center",
@@ -245,7 +221,7 @@ const styles = StyleSheet.create({
   },
 
   backRightBtnRight: {
-    backgroundColor: "#5E67B6",
+    backgroundColor: "#bb5f25",
     right: 0,
     color: "black",
   },
